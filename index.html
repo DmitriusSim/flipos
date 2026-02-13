@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>FlipOS v2.0 | Advanced Sniffing System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* --- Root Variables & Base Styles --- */
+        :root {
+            --accent: #a271ff;          /* Основной акцент (фиолетовый) */
+            --accent-light: #c291ff;    /* Светлый акцент */
+            --bg-dark: #0a0a0a;         /* Темный фон */
+            --bg-light: #ffffff;        /* Светлый фон */
+            --window-bg-dark: #1a1a1a;  /* Фон окна в темной теме */
+            --window-bg-light: #e0e0e0; /* Фон окна в светлой теме */
+            --text-dark: #ffffff;       /* Цвет текста в темной теме */
+            --text-light: #333333;      /* Цвет текста в светлой теме */
+            --taskbar-dark: linear-gradient(90deg, #1e130c, #3a2a1d, #1e130c); /* Темная панель задач (шерсть) */
+            --taskbar-light: linear-gradient(90deg, #f0e0d0, #f8f0e8, #f0e0d0); /* Светлая панель задач */
+            --border-color-dark: var(--accent);
+            --border-color-light: #888;
+
+            /* Эффект шерсти */
+            --fur-dark-pattern: repeating-radial-gradient(circle at 0 0, transparent 0, #1a1a1a 10px), 
+                                repeating-linear-gradient(#2b1d12, #1a110a);
+            --fur-light-pattern: repeating-radial-gradient(circle at 0 0, transparent 0, #e0e0e0 10px), 
+                                 repeating-linear-gradient(#f2eae1, #e6ddd6);
+
+            --current-bg: var(--bg-dark);
+            --current-window-bg: var(--window-bg-dark);
+            --current-text: var(--text-dark);
+            --current-taskbar-bg: var(--taskbar-dark);
+            --current-fur-pattern: var(--fur-dark-pattern);
+            --current-border-color: var(--border-color-dark);
+        }
+
+        [data-theme="light"] {
+            --current-bg: var(--bg-light);
+            --current-window-bg: var(--window-bg-light);
+            --current-text: var(--text-light);
+            --current-taskbar-bg: var(--taskbar-light);
+            --current-fur-pattern: var(--fur-light-pattern);
+            --current-border-color: var(--border-color-light);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--current-bg);
+            color: var(--current-text);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- Desktop --- */
+        #desktop {
+            width: 100vw;
+            height: calc(100vh - 55px); /* Отступ под таскбар */
+            position: relative;
+            background: radial-gradient(circle, #1a0b2e 0%, #000000 100%); /* Дефолтный фон */
+            background-size: cover;
+            background-position: center;
+            display: flex; /* Для виджетов */
+            flex-wrap: wrap;
+            align-content: flex-start;
+            padding-top: 20px;
+        }
+
+        /* --- Taskbar "Шерсть" --- */
+        #taskbar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 55px;
+            background: var(--current-taskbar-bg);
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 1000;
+            border-top: 2px solid var(--current-border-color);
+            background-image: var(--current-fur-pattern);
+            background-blend-mode: multiply; /* Для смешивания паттерна с градиентом */
+        }
+
+        #start-button {
+            width: 45px;
+            height: 45px;
+            background: var(--accent);
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, background 0.3s;
+            margin-right: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        #start-button:hover { transform: scale(1.1) rotate(5deg); background: var(--accent-light); }
+        #start-button img { width: 85%; border-radius: 8px; }
+        
+        #running-apps {
+            display: flex;
+            gap: 5px;
+            margin-left: 10px;
+            flex-grow: 1; /* Чтобы занимали доступное место */
+        }
+        .running-app-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+        .running-app-icon:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: var(--accent);
+        }
+        .running-app-icon.active {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.25);
+            box-shadow: 0 0 5px var(--accent);
+        }
+        .running-app-icon img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+
+        /* --- Start Menu --- */
+        #start-menu {
+            position: absolute;
+            bottom: 65px;
+            left: 10px;
+            width: 350px;
+            max-height: 80%;
+            overflow-y: auto;
+            background: rgba(20, 20, 20, 0.95);
+            border: 2px solid var(--current-border-color);
+            border-radius: 15px;
+            padding: 20px;
+            display: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            color: var(--current-text);
+        }
+
+        .menu-item {
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+        }
+        .menu-item:hover { background: var(--accent); color: white; }
+        .menu-item i { font-size: 20px; width: 30px; text-align: center; }
+
+        /* --- Desktop Icons --- */
+        .desktop-icon {
+            width: 90px;
+            height: 90px;
+            text-align: center;
+            margin: 15px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.2s, border 0.2s;
+            border-radius: 10px;
+        }
+        .desktop-icon:hover {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--accent);
+        }
+        .desktop-icon img, .desktop-icon i {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            font-size: 40px; /* Для Font Awesome */
+            color: var(--accent-light);
+        }
+        .desktop-icon div {
+            font-size: 13px;
+            word-wrap: break-word;
+            width: 100%;
+            padding: 0 5px;
+        }
+
+        /* --- Windows --- */
+        .window {
+            position: absolute;
+            width: 700px;
+            min-height: 300px;
+            max-height: calc(100vh - 100px);
+            background: var(--current-window-bg);
+            border: 1px solid var(--current-border-color);
+            border-radius: 12px;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            z-index: 100; /* По умолчанию */
+            resize: both; /* Разрешить изменение размера */
+            overflow: hidden; /* Скрыть содержимое при resize */
+        }
+        .window.focused { z-index: 101; } /* Фокусированное окно поверх */
+
+        .window-header {
+            padding: 10px;
+            background: #252525;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            border-radius: 12px 12px 0 0;
+            cursor: grab;
+            color: var(--text-dark); /* Всегда белый для заголовков */
+        }
+
+        .window-header-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .window-header-button {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn { background: #ff5f56; color: white; }
+        .minimize-btn { background: #ffbd2e; color: white; }
+        .maximize-btn { background: #27c93f; color: white; }
+        
+        .window-content { 
+            padding: 20px; 
+            flex: 1; 
+            overflow-y: auto; 
+            color: var(--current-text);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- App Specific Styles --- */
+        /* Flip_Code */
+        .code-area {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            width: 100%;
+            height: 100%; /* Занимает всю высоту контента */
+            border: none;
+            resize: none;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .code-app-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        /* Flip_Memo */
+        .memo-textarea {
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.2);
+            color: var(--current-text);
+            font-size: 14px;
+            resize: none;
+        }
+
+        /* Flip_Browser */
+        .browser-address-bar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .browser-address-bar input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background: rgba(0,0,0,0.2);
+            color: var(--current-text);
+        }
+        .browser-address-bar button {
+            background: var(--accent);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        .browser-iframe {
+            width: 100%;
+            flex-grow: 1;
+            border: 1px solid #444;
+            border-radius: 8px;
+        }
+
+        /* Flip_Games */
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+        .game-controls button {
+            background: var(--accent);
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Flip_Settings */
+        .settings-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .settings-section h4 {
+            color: var(--accent-light);
+            margin-bottom: 10px;
+        }
+        .settings-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .settings-option input[type="color"],
+        .settings-option select {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid #555;
+            padding: 5px;
+            border-radius: 5px;
+            color: var(--current-text);
+        }
+        .settings-option input[type="file"] {
+            border: 1px solid #555;
+            padding: 5px;
+            border-radius: 5px;
+            background: rgba(0,0,0,0.2);
+            color: var(--current-text);
+        }
+
+        /* Flip_Music */
+        .music-player {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        .music-player audio {
+            width: 80%;
+        }
+        .music-player input {
+            width: 80%;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background: rgba(0,0,0,0.2);
+            color: var(--current-text);
+        }
+        .music-player button {
+            background: var(--accent);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Flip_Paws */
+        .paws-console {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            height: 100%;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            white-space: pre-wrap;
+        }
+        .paws-app{
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #222;
+        }
+        
+        .paws-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .paws-controls button {
+            background: var(--accent);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* --- Widgets --- */
+        .widget {
+            position: absolute; /* Позиционирование будет JS */
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        #clock-widget { top: 20px; right: 20px; text-align: right; }
+        #clock-widget .time { font-size: 3em; font-weight: bold; }
+        #clock-widget .date { font-size: 1.2em; color: var(--accent-light); }
+
+        #weather-widget { top: 150px; right: 20px; width: 180px; }
+        #weather-widget .icon { font-size: 2em; margin-right: 10px; color: yellow; }
+        #weather-widget .temp { font-size: 1.5em; }
+
+        #flip-mood-widget { bottom: 80px; left: 20px; width: 150px; text-align: center; }
+        #flip-mood-widget img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 5px; }
+
+        /* --- FlipRE (Recovery Mode) --- */
+        #recovery-mode {
+            position: fixed;
+            inset: 0;
+            background: #000033; /* Темно-синий фон */
+            color: #00ff00; /* Зеленый текст */
+            font-family: 'Consolas', monospace;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            z-index: 2000;
+            display: none; /* Скрыто по умолчанию */
+        }
+        #recovery-mode h1 { color: #00ffff; margin-bottom: 30px; }
+        #recovery-mode .option {
+            margin-bottom: 15px;
+            cursor: pointer;
+            padding: 5px 0;
+        }
+        #recovery-mode .option:hover { text-decoration: underline; }
+        #recovery-output {
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            margin-top: 20px;
+            width: 80%;
+            height: 200px;
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid #00ff00;
+        }
+        #recovery-prompt {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        #recovery-prompt input {
+            background: transparent;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 5px;
+            width: 300px;
+            font-family: 'Consolas', monospace;
+        }
+        #recovery-prompt button {
+            background: #00ff00;
+            color: #000033;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .paws-app{
+            background: #222222;
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+<div id="recovery-mode">
+    <h1><i class="fas fa-bone"></i> FlipRE: Режим Восстановления</h1>
+    <div class="option" onclick="runRecoveryCommand('system_check')"><i class="fas fa-stethoscope"></i> Проверка системы</div>
+    <div class="option" onclick="runRecoveryCommand('restore_point')"><i class="fas fa-undo"></i> Восстановление до точки "Хороший Мальчик"</div>
+    <div class="option" onclick="runRecoveryCommand('console_access')"><i class="fas fa-terminal"></i> Доступ к командной строке</div>
+    <div class="option" onclick="exitRecovery()"><i class="fas fa-power-off"></i> Выход и перезагрузка</div>
+    
+    <div id="recovery-output"></div>
+    <div id="recovery-prompt" style="display:none;">
+        <span>C:\FlipRE></span>
+        <input type="text" id="recovery-command-input" onkeydown="handleRecoveryCommand(event)">
+        <button onclick="executeRecoveryInput()">Выполнить</button>
+    </div>
+</div>
+
+<div id="desktop">
+    <div class="desktop-icon" onclick="openApp('code-app')">
+        <i class="fas fa-code"></i>
+        <div>Flip_Code</div>
+    </div>
+    <div class="desktop-icon" onclick="openApp('memo-app')">
+        <i class="fas fa-sticky-note"></i>
+        <div>Flip_Memo</div>
+    </div>
+    <div class="desktop-icon" onclick="openApp('gallery-app')">
+        <i class="fas fa-image"></i>
+        <div>Галерея</div>
+    </div>
+    <div class="desktop-icon" onclick="openApp('browser-app')">
+        <i class="fas fa-globe"></i>
+        <div>Flip_Browser</div>
+    </div>
+    <div class="desktop-icon" onclick="openApp('games-app')">
+        <i class="fas fa-gamepad"></i>
+        <div>Flip_Games</div>
+    </div>
+    <div class="desktop-icon" onclick="openApp('settings-app')">
+        <i class="fas fa-cog"></i>
+        <div>Настройки</div>
+    </div>
+    <div class="desktop-icon" onclick="openApp('store-app')">
+        <i class="fas fa-shopping-basket"></i>
+        <div>Flip_Store</div>
+    </div>
+    <div class="desktop-icon" onclick="openApp('mail-app')">
+        <i class="fas fa-envelope"></i>
+        <div>Flip_Mail</div>
+    </div>
+    <div class="desktop-icon" onclick="openApp('music-app')">
+        <i class="fas fa-music"></i>
+        <div>Flip_Music</div>
+    </div>
+    <div class="desktop-icon" onclick="openApp('paws-app')">
+        <i class="fas fa-paw"></i>
+        <div>Flip_Paws</div>
+    </div>
+    <div class="desktop-icon" onclick="enterRecoveryMode()">
+        <i class="fas fa-hard-drive"></i>
+        <div>FlipRE</div>
+    </div>
+
+    <div id="clock-widget" class="widget">
+        <div class="time" id="clock-time">00:00</div>
+        <div class="date" id="clock-date">01.01.2026</div>
+    </div>
+
+    <div id="weather-widget" class="widget">
+        <i class="fas fa-cloud-sun icon"></i>
+        <span class="temp">25°C</span>
+        <div>Dog-friendly</div>
+    </div>
+
+    <div id="flip-mood-widget" class="widget">
+        <img src="bedniy.png" alt="Flip Mood">
+        <div id="flip-mood-text">Счастлив!</div>
+    </div>
+
+    <div id="code-app" class="window" style="left: 100px; top: 50px;">
+        <div class="window-header">
+            <span><i class="fas fa-code"></i> FLIP_CODE v1.0 - [STATUS: SNIFFING]</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('code-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('code-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('code-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <textarea class="code-area">
+// Добро пожаловать в Flip_Code!
+// Здесь вы можете писать свой код.
+// Флип поможет найти ошибки!
+
+function fetchTreats() {
+  if (isGoodBoy) {
+    return "Lots of yummy treats!";
+  } else {
+    return "Just a single kibble.";
+  }
+}
+
+console.log(fetchTreats());
+            </textarea>
+            <div class="code-app-controls">
+                <button onclick="runCode()" style="background: var(--accent); border:none; padding:10px; color:white; border-radius:5px; cursor:pointer;">RUN JS</button>
+                <button onclick="saveCode()" style="background: #333; border:none; padding:10px; color:white; border-radius:5px; cursor:pointer;">SAVE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="memo-app" class="window" style="left: 200px; top: 100px;">
+        <div class="window-header">
+            <span><i class="fas fa-sticky-note"></i> Flip_Memo</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('memo-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('memo-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('memo-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <textarea class="memo-textarea" placeholder="Напишите здесь свои заметки про Флипа..."></textarea>
+            <button style="margin-top:10px; background: var(--accent); border:none; padding:10px; color:white; border-radius:5px; cursor:pointer;" onclick="saveMemo()">Сохранить заметку</button>
+        </div>
+    </div>
+
+    <div id="gallery-app" class="window" style="left: 300px; top: 150px;">
+        <div class="window-header">
+            <span><i class="fas fa-image"></i> FLIP_PHOTOS</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('gallery-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('gallery-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('gallery-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <p style="margin-bottom: 15px;">Лучшие моменты Флипа:</p>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:10px;">
+                <img src="https://i.imgur.com/u7r3Z9G.png" style="width:100%; height:auto; border:2px solid var(--accent); border-radius:8px;">
+                <img src="https://i.imgur.com/u7r3Z9G.png" style="width:100%; height:auto; border:2px solid var(--accent); border-radius:8px;">
+                <img src="https://i.imgur.com/u7r3Z9G.png" style="width:100%; height:auto; border:2px solid var(--accent); border-radius:8px;">
+                <img src="https://i.imgur.com/u7r3Z9G.png" style="width:100%; height:auto; border:2px solid var(--accent); border-radius:8px;">
+            </div>
+            <button style="margin-top:15px; background: #333; border:none; padding:10px; color:white; border-radius:5px; cursor:pointer;">Загрузить новое фото</button>
+        </div>
+    </div>
+
+    <div id="browser-app" class="window" style="left: 400px; top: 200px;">
+        <div class="window-header">
+            <span><i class="fas fa-globe"></i> Flip_Browser</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('browser-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('browser-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('browser-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="browser-address-bar">
+                <input type="text" id="browser-url-input" value="https://example.com" placeholder="Введите URL...">
+                <button onclick="loadBrowserUrl()"><i class="fas fa-arrow-right"></i> Go</button>
+            </div>
+            <iframe id="browser-iframe" src="https://example.com" class="browser-iframe"></iframe>
+        </div>
+    </div>
+
+    <div id="games-app" class="window" style="left: 50px; top: 250px;">
+        <div class="window-header">
+            <span><i class="fas fa-gamepad"></i> Flip_Games</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('games-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('games-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('games-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="game-area">
+                <iframe src="mobile game.html" frameborder="0" height="400" width="600" ></iframe>
+            </div>
+        </div>
+    </div>
+    <div id="settings-app" class="window" style="left: 150px; top: 300px;">
+        <div class="window-header">
+            <span><i class="fas fa-cog"></i> Flip_Settings</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('settings-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('settings-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('settings-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="settings-section">
+                <h4>Тема</h4>
+                <div class="settings-option">
+                    <label for="theme-select">Выберите тему:</label>
+                    <select id="theme-select" onchange="changeTheme()">
+                        <option value="dark">Темная</option>
+                        <option value="light">Светлая</option>
+                    </select>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>Персонализация</h4>
+                <div class="settings-option">
+                    <label for="bg-color-picker">Цвет фона рабочего стола:</label>
+                    <input type="color" id="bg-color-picker" onchange="changeDesktopBgColor()">
+                </div>
+                <div class="settings-option">
+                    <label for="wallpaper-upload">Загрузить обои:</label>
+                    <input type="file" id="wallpaper-upload" accept="image/*" onchange="uploadWallpaper(event)">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="mail-app" class="window" style="left: 250px; top: 120px;">
+        <div class="window-header">
+            <span><i class="fas fa-envelope"></i> Flip_Mail</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('mail-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('mail-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('mail-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <p>Добро пожаловать в Flip_Mail! Здесь вы можете отправлять и получать письма от других Флип-друзей.</p>
+            <button style="margin-top:15px; background: var(--accent); border:none; padding:10px; color:white; border-radius:5px; cursor:pointer;">Создать новое письмо</button>
+        </div>
+
+    </div>
+    <div id="music-app" class="window" style="left: 300px; top: 160px;">
+        <div class="window-header">
+            <span><i class="fas fa-music"></i> Flip_Music</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('music-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('music-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('music-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="music-player">
+                <audio id="music-player-audio" controls>
+                    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+                    Ваш браузер не поддерживает аудиоэлементы.
+                </audio>
+                <input type="text" id="music-url-input" placeholder="Вставьте URL аудиофайла здесь...">
+                <button onclick="loadMusic()" style="background: var(--accent); border:none; padding:10px; color:white; border-radius:5px; cursor:pointer;">Загрузить музыку</button>
+            </div>
+        </div>
+    </div>
+    <div id="store-app" class="window" style="left: 350px; top: 200px;">
+        <div class="window-header">
+            <span><i class="fas fa-shopping-basket"></i> Flip_Store</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('store-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('store-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('store-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <p>Добро пожаловать в Flip_Store! Здесь вы можете приобрести новые приложения и функции для вашего FlipOS.</p>
+            <button style="margin-top:15px; background: var(--accent); border:none; padding:10px; color:white; border-radius:5px; cursor:pointer;">Просмотреть магазин</button>
+        </div>
+    </div>
+    <div id="paws-app" class="window" style="left: 400px; top: 240px;">
+        <div class="window-header">
+            <span><i class="fas fa-paw"></i> Flip_Paws</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('paws-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('paws-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('paws-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="paws-console" id="paws-console-output">
+                Добро пожаловать в Flip_Paws! Введите команды ниже, чтобы взаимодействовать с системой.
+            </div>
+            <div class="paws-controls">
+                <button onclick="sendPawsCommand('bark')">Гав!</button>
+                <button onclick="sendPawsCommand('fetch')">Принеси палку</button>
+                <button onclick="sendPawsCommand('sit')">Сидеть</button>
+            </div>
+        </div>
+    </div>
+    <div id="taskbar">
+        <div id="start-button" style="background: #00000000;"onclick="toggleStartMenu()">
+            <img src="bedniy.png" alt="Start">
+        </div>
+        <div id="running-apps"></div>
+    </div>
+    <div id="start">
+        <div id="start-menu">
+            <div class="menu-item" onclick="openApp('code-app')"><i class="fas fa-code"></i> Flip_Code</div>
+            <div class="menu-item" onclick="openApp('memo-app')"><i class="fas fa-sticky-note"></i> Flip_Memo</div>
+            <div class="menu-item" onclick="openApp('gallery-app')"><i class="fas fa-image"></i> Галерея</div>
+            <div class="menu-item" onclick="openApp('browser-app')"><i class="fas fa-globe"></i> Flip_Browser</div>
+            <div class="menu-item" onclick="openApp('games-app')"><i class="fas fa-gamepad"></i> Flip_Games</div>
+            <div class="menu-item" onclick="openApp('settings-app')"><i class="fas fa-cog"></i> Настройки</div>
+            <div class="menu-item" onclick="openApp('store-app')"><i class="fas fa-shopping-basket"></i> Flip_Store</div>
+            <div class="menu-item" onclick="openApp('mail-app')"><i class="fas fa-envelope"></i> Flip_Mail</div>
+            <div class="menu-item" onclick="openApp('music-app')"><i class="fas fa-music"></i> Flip_Music</div>
+            <div class="menu-item" onclick="openApp('paws-app')"><i class="fas fa-paw"></i> Flip_Paws</div>
+            <div class="menu-item" onclick="enterRecoveryMode()"><i class="fas fa-hard-drive"></i> FlipRE</div>
+        </div>
+    </div>
+
+
+    <script>
+        /**
+         * FlipOS v2.0 Logic
+         * Handles: Window Management, Taskbar, Widgets, and System Themes
+         */
+        function sendPawsCommand(command) {
+            const output = document.getElementById('paws-console-output');
+            let response = '';
+
+            switch(command) {
+                case 'bark':
+                    response = 'Woof! Woof!';
+                    break;
+                case 'fetch':
+                    response = '*Флип бежит за палкой и приносит её обратно*';
+                    break;
+                case 'sit':
+                    response = '*Флип садится*';
+                    break;
+                default:
+                    response = 'Неизвестная команда.';
+            }
+
+            output.textContent += '\n> ' + command + '\n' + response;
+            output.scrollTop = output.scrollHeight; // Прокрутка вниз
+        }
+        // --- 1. State Management ---
+        let focusedWindow = null;
+        let zIndexCounter = 100;
+
+        // --- 2. Clock & Date Widget ---
+        function updateClock() {
+            const now = new Date();
+            const timeElement = document.getElementById('clock-time');
+            const dateElement = document.getElementById('clock-date');
+
+            timeElement.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            dateElement.textContent = now.toLocaleDateString('ru-RU');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        // BONUS: START MENU
+        function openStartMenu() {
+            document.getElementById('start').style.display = 'block';
+        }
+        // --- 3. Window Management (Open, Close, Focus) ---
+        function openApp(appId) {
+            const win = document.getElementById(appId);
+            win.style.display = 'flex';
+            focusWindow(win);
+            updateTaskbar();
+            
+            // Hide start menu if it's open
+            document.getElementById('start-menu').style.display = 'none';
+        }
+
+        function closeApp(appId) {
+            const win = document.getElementById(appId);
+            win.style.display = 'none';
+            updateTaskbar();
+        }
+
+        function minimizeApp(appId) {
+            const win = document.getElementById(appId);
+            win.style.display = 'none';
+        }
+
+        function maximizeApp(appId) {
+            const win = document.getElementById(appId);
+            if (win.style.width === '100vw') {
+                win.style.width = '700px';
+                win.style.height = 'auto';
+                win.style.top = '50px';
+                win.style.left = '100px';
+            } else {
+                win.style.width = '100vw';
+                win.style.height = 'calc(100vh - 55px)';
+                win.style.top = '0';
+                win.style.left = '0';
+            }
+        }
+
+        function focusWindow(win) {
+            if (focusedWindow) focusedWindow.classList.remove('focused');
+            focusedWindow = win;
+            win.classList.add('focused');
+            win.style.zIndex = ++zIndexCounter;
+        }
+
+        // --- 4. Draggable Windows ---
+        document.querySelectorAll('.window-header').forEach(header => {
+            header.addEventListener('mousedown', (e) => {
+                const win = header.parentElement;
+                focusWindow(win);
+
+                let shiftX = e.clientX - win.getBoundingClientRect().left;
+                let shiftY = e.clientY - win.getBoundingClientRect().top;
+
+                function moveAt(pageX, pageY) {
+                    win.style.left = pageX - shiftX + 'px';
+                    win.style.top = pageY - shiftY + 'px';
+                }
+
+                function onMouseMove(event) {
+                    moveAt(event.pageX, event.pageY);
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+
+                document.onmouseup = function() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.onmouseup = null;
+                };
+            });
+        });
+
+        // --- 5. Start Menu & Taskbar ---
+        function toggleStartMenu() {
+            const menu = document.getElementById('start-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Close start menu when clicking desktop
+        document.getElementById('desktop').addEventListener('click', (e) => {
+            if (e.target.id === 'desktop') {
+                document.getElementById('start-menu').style.display = 'none';
+            }
+        });
+
+        // --- 6. Settings & Customization ---
+        function changeTheme() {
+            const theme = document.getElementById('theme-select').value;
+            document.body.setAttribute('data-theme', theme);
+        }
+
+        function changeDesktopBgColor() {
+            const color = document.getElementById('bg-color-picker').value;
+            document.getElementById('desktop').style.background = color;
+        }
+
+        function uploadWallpaper(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('desktop').style.backgroundImage = `url(${e.target.result})`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- 7. App Specific Logic ---
+
+        // Browser
+        function loadBrowserUrl() {
+            const url = document.getElementById('browser-url-input').value;
+            const iframe = document.getElementById('browser-iframe');
+            // Note: Many sites block iframe loading due to X-Frame-Options
+            iframe.src = url.startsWith('http') ? url : 'https://' + url;
+        }
+
+        // Flip_Code Run
+        function runCode() {
+            const code = document.querySelector('.code-area').value;
+            try {
+                console.log("Flip_Code Executing...");
+                eval(code); 
+                alert("Код выполнен! Проверьте консоль браузера.");
+            } catch (err) {
+                alert("Ошибка в коде: " + err.message);
+            }
+        }
+        // --- 9. flipMAIL ---
+        // (Placeholder for future mail app logic)
+        // --- Update Taskbar ---
+        function updateTaskbar() {
+            const runningAppsContainer = document.getElementById('running-apps');
+            runningAppsContainer.innerHTML = '';
+
+            document.querySelectorAll('.window').forEach(win => {
+                if (win.style.display === 'flex') {
+                    const appIcon = document.createElement('div');
+                    appIcon.classList.add('running-app-icon');
+                    if (win === focusedWindow) appIcon.classList.add('active');
+
+                    // Set icon based on app
+                    let iconClass = 'fas fa-window-maximize'; // Default icon
+                    if (win.id === 'code-app') iconClass = 'fas fa-code';
+                    else if (win.id === 'memo-app') iconClass = 'fas fa-sticky-note';
+                    else if (win.id === 'gallery-app') iconClass = 'fas fa-image';
+                    else if (win.id === 'browser-app') iconClass = 'fas fa-globe';
+                    else if (win.id === 'games-app') iconClass = 'fas fa-gamepad';
+                    else if (win.id === 'settings-app') iconClass = 'fas fa-cog';
+                    else if (win.id === 'mail-app') iconClass = 'fas fa-envelope';
+
+                    appIcon.innerHTML = `<i class="${iconClass}"></i>`;
+                    appIcon.onclick = () => {
+                        if (win.style.display === 'flex') {
+                            minimizeApp(win.id);
+                        } else {
+                            openApp(win.id);
+                        }
+                    };
+                    runningAppsContainer.appendChild(appIcon);
+                }
+            });
+        }
+
+
+        // --- 8. FlipRE (Recovery Mode) ---
+        function enterRecoveryMode() {
+            document.getElementById('recovery-mode').style.display = 'flex';
+        }
+
+        function exitRecovery() {
+            document.getElementById('recovery-mode').style.display = 'none';
+            location.reload(); // Simulate reboot
+        }
+
+        function runRecoveryCommand(cmd) {
+            const output = document.getElementById('recovery-output');
+            if (cmd === 'system_check') {
+                output.innerHTML += "Sniffing system files...<br>Status: All tails wagging.<br>";
+            } else if (cmd === 'console_access') {
+                document.getElementById('recovery-prompt').style.display = 'flex';
+            }
+        }
+
+        function handleRecoveryCommand(e) {
+            if (e.key === 'Enter') {
+                executeRecoveryInput();
+            }
+        }
+
+        function executeRecoveryInput() {
+            const input = document.getElementById('recovery-command-input');
+            const output = document.getElementById('recovery-output');
+            output.innerHTML += `> ${input.value}<br>Error: '${input.value}' is not a recognized bark.<br>`;
+            input.value = '';
+        }
+        
+    
+// --- Added Missing Functions ---
+function saveMemo() {
+    const text = document.querySelector('.memo-textarea').value;
+    localStorage.setItem('flip_memo', text);
+    alert("Заметка сохранена!");
+}
+
+function saveCode() {
+    const code = document.querySelector('.code-area').value;
+    localStorage.setItem('flip_code', code);
+    alert("Код сохранён!");
+}
+
+function loadMusic() {
+    const url = document.getElementById('music-url-input').value;
+    const audio = document.getElementById('music-player-audio');
+    if (url) {
+        audio.src = url;
+        audio.play();
+    }
+}
+
+</script>
+</body>
+</html>

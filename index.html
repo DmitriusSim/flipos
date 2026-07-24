@@ -41,6 +41,9 @@
             --current-taskbar-bg: var(--taskbar-light);
             --current-fur-pattern: var(--fur-light-pattern);
             --current-border-color: var(--border-color-light);
+            --glass-bg: rgba(255,255,255,0.78);
+            --glass-border: rgba(255,255,255,0.32);
+            --glass-header: rgba(255,255,255,0.92);
         }
 
         body, html {
@@ -74,15 +77,16 @@
             bottom: 0;
             width: 100%;
             height: 55px;
-            background: var(--current-taskbar-bg);
+            background: linear-gradient(rgba(7,9,18,0.82), rgba(7,9,18,0.78)), var(--current-taskbar-bg);
             box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
             display: flex;
             align-items: center;
             padding: 0 10px;
             z-index: 1000;
-            border-top: 2px solid var(--current-border-color);
+            border-top: 1px solid rgba(255,255,255,0.14);
             background-image: var(--current-fur-pattern);
             background-blend-mode: multiply; /* Для смешивания паттерна с градиентом */
+            backdrop-filter: blur(16px);
         }
 
         #start-button {
@@ -142,14 +146,14 @@
             left: 10px;
             width: 350px;
             max-height: 80%;
-            overflow-y: auto;
-            background: rgba(20, 20, 20, 0.95);
-            border: 2px solid var(--current-border-color);
-            border-radius: 15px;
+            overflow-y: hidden;
+            background: rgba(12,12,20,0.82);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 20px;
             padding: 20px;
             display: none;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.72);
             color: var(--current-text);
         }
 
@@ -207,28 +211,28 @@
             width: 700px;
             min-height: 300px;
             max-height: calc(100vh - 100px);
-            background: var(--current-window-bg);
-            border: 1px solid var(--current-border-color);
-            border-radius: 12px;
+            border: 1px solid ghostwhite;
+            border-radius: 24px;
             display: none;
             flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             z-index: 100; /* По умолчанию */
             resize: both; /* Разрешить изменение размера */
-            overflow: hidden; /* Скрыть содержимое при resize */
+            overflow: hidden; /* Скрыть содержимое при resize */;
+            backdrop-filter: blur(12px);
         }
         .window.focused { z-index: 101; } /* Фокусированное окно поверх */
 
         .window-header {
-            padding: 10px;
-            background: #252525;
+            padding: 12px 14px;
+            background: var(--glass-header);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #333;
-            border-radius: 12px 12px 0 0;
+            border-bottom: 1px solid rgba(255,255,255,0.16);
+            border-radius: 20px 20px 0 0;
             cursor: grab;
-            color: var(--text-dark); /* Всегда белый для заголовков */
+            color: var(--current-text);
+            backdrop-filter: blur(12px);
         }
 
         .window-header-buttons {
@@ -236,8 +240,8 @@
             gap: 5px;
         }
         .window-header-button {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -245,10 +249,14 @@
             font-size: 12px;
             font-weight: bold;
             cursor: pointer;
+            background: rgba(255,255,255,0.12);
+            color: var(--current-text);
+            transition: transform 0.2s ease, background 0.2s ease;
         }
-        .close-btn { background: #ff5f56; color: white; }
-        .minimize-btn { background: #ffbd2e; color: white; }
-        .maximize-btn { background: #27c93f; color: white; }
+        .window-header-button:hover { transform: scale(1.1); background: rgba(255,255,255,0.18); }
+        .close-btn { background: #ff5f56; color: #fff; }
+        .minimize-btn { background: #ffbd2e; color: #fff; }
+        .maximize-btn { background: #27c93f; color: #fff; }
         
         .window-content { 
             padding: 20px; 
@@ -294,51 +302,154 @@
         /* Flip_Browser */
         .browser-address-bar {
             display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
+            gap: 10px;
+            margin-bottom: 16px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 18px;
+            padding: 10px;
+            backdrop-filter: blur(18px);
         }
         .browser-address-bar input {
             flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #555;
-            border-radius: 5px;
-            background: rgba(0,0,0,0.2);
+            padding: 12px 14px;
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.08);
             color: var(--current-text);
+            outline: none;
         }
         .browser-address-bar button {
             background: var(--accent);
             border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
+            padding: 12px 18px;
+            border-radius: 14px;
             color: white;
             cursor: pointer;
+            min-width: 90px;
         }
         .browser-iframe {
             width: 100%;
             flex-grow: 1;
-            border: 1px solid #444;
-            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 18px;
+            min-height: 420px;
+            background: rgba(0,0,0,0.16);
         }
 
         /* Flip_Games */
         .game-area {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
+            gap: 18px;
+            align-items: stretch;
+            justify-content: flex-start;
+            min-height: 100%;
             text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 24px;
+            box-shadow: inset 0 0 0 rgba(255,255,255,0.06);
+        }
+        .game-area p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .game-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
         }
         .game-controls button {
-            background: var(--accent);
-            border: none;
-            padding: 10px 20px;
-            margin: 5px;
-            border-radius: 8px;
-            color: white;
+            background: rgba(118,214,255,0.24);
+            border: 1px solid rgba(118,214,255,0.4);
+            padding: 12px 20px;
+            border-radius: 16px;
+            color: var(--current-text);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .game-controls button:hover {
+            transform: translateY(-2px);
+            background: rgba(118,214,255,0.35);
+        }
+        .game-preview {
+            width: 100%;
+            min-height: 260px;
+            border-radius: 20px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.18);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.72);
+        }
+
+        .vm-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            min-height: 340px;
+            padding: 18px;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.14);
+            backdrop-filter: blur(18px);
+            box-shadow: inset 0 0 0 rgba(255,255,255,0.08);
+        }
+        .vm-shell-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.16);
+        }
+        .vm-shell-header span {
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .vm-shell-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        .vm-window {
+            border-radius: 18px;
+            background: rgba(0,0,0,0.22);
+            border: 1px solid rgba(255,255,255,0.08);
+            min-height: 220px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .vm-window p {
+            margin: 0;
+            color: rgba(255,255,255,0.88);
+            line-height: 1.5;
+        }
+        .vm-action-btn {
+            align-self: flex-start;
+            padding: 10px 18px;
+            border-radius: 16px;
+            border: 1px solid rgba(118,214,255,0.4);
+            background: rgba(118,214,255,0.2);
+            color: var(--current-text);
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .vm-action-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(118,214,255,0.35);
         }
 
         /* Flip_Settings */
@@ -354,51 +465,78 @@
         .settings-option {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
         .settings-option input[type="color"],
-        .settings-option select {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid #555;
-            padding: 5px;
-            border-radius: 5px;
-            color: var(--current-text);
-        }
+        .settings-option select,
         .settings-option input[type="file"] {
-            border: 1px solid #555;
-            padding: 5px;
-            border-radius: 5px;
-            background: rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.14);
+            padding: 8px 10px;
+            border-radius: 12px;
             color: var(--current-text);
+            outline: none;
+        }
+
+        .about-card {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 24px;
+            padding: 18px;
+            margin-top: 18px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+        .about-card h4 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            color: var(--accent-light);
+        }
+        .about-card p {
+            margin: 0 10px 10px 0;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.85);
+        }
+        .about-card .about-version {
+            margin-top: 12px;
+            font-weight: 700;
+            color: var(--accent);
         }
 
         /* Flip_Music */
         .music-player {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 18px;
             align-items: center;
             justify-content: center;
             height: 100%;
+            padding: 20px;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.14);
         }
         .music-player audio {
             width: 80%;
+            border-radius: 12px;
         }
         .music-player input {
             width: 80%;
-            padding: 8px;
-            border: 1px solid #555;
-            border-radius: 5px;
-            background: rgba(0,0,0,0.2);
+            padding: 12px 14px;
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.08);
             color: var(--current-text);
+            outline: none;
         }
         .music-player button {
-            background: var(--accent);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            color: white;
+            background: rgba(118,214,255,0.28);
+            border: 1px solid rgba(118,214,255,0.45);
+            padding: 12px 22px;
+            border-radius: 16px;
+            color: var(--current-text);
             cursor: pointer;
             font-size: 16px;
         }
@@ -438,13 +576,13 @@
         /* --- Widgets --- */
         .widget {
             position: absolute; /* Позиционирование будет JS */
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
-            border: 1px solid var(--accent);
-            border-radius: 12px;
+            background: rgba(10,14,28,0.82);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 18px;
             padding: 15px;
             color: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.45);
         }
         #clock-widget { top: 20px; right: 20px; text-align: right; }
         #clock-widget .time { font-size: 3em; font-weight: bold; }
@@ -553,6 +691,10 @@
         <i class="fas fa-gamepad"></i>
         <div>Flip_Games</div>
     </div>
+    <div class="desktop-icon" onclick="openApp('vm-app')">
+        <i class="fas fa-desktop"></i>
+        <div>Flip_VM</div>
+    </div>
     <div class="desktop-icon" onclick="openApp('settings-app')">
         <i class="fas fa-cog"></i>
         <div>Настройки</div>
@@ -560,6 +702,10 @@
     <div class="desktop-icon" onclick="openApp('store-app')">
         <i class="fas fa-shopping-basket"></i>
         <div>Flip_Store</div>
+    </div>
+    <div class="desktop-icon" onclick="openApp('chat-app')">
+        <i class="fas fa-comments"></i>
+        <div>Flip_Chat</div>
     </div>
     <div class="desktop-icon" onclick="openApp('mail-app')">
         <i class="fas fa-envelope"></i>
@@ -590,7 +736,7 @@
     </div>
 
     <div id="flip-mood-widget" class="widget">
-        <img src="bedniy.png" alt="Flip Mood">
+        <img src="img/logo.png" alt="Flip Mood">
         <div id="flip-mood-text">Счастлив!</div>
     </div>
 
@@ -680,6 +826,37 @@ console.log(fetchTreats());
         </div>
     </div>
 
+    <div id="vm-app" class="window" style="left: 220px; top: 220px; width: 760px; height: 520px;">
+        <div class="window-header">
+            <span><i class="fas fa-desktop"></i> Flip_VM</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('vm-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('vm-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('vm-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="vm-shell">
+                <div class="vm-shell-header">
+                    <span>Virtual FlipOS 27.0</span>
+                    <button class="vm-action-btn" onclick="toggleVmBoot(this)">Boot VM</button>
+                </div>
+                <div id="vm-shell-body" class="vm-shell-body">
+                    <div class="vm-window" id="vm-boot-status">
+                        <p>Virtual machine is ready. Click "Boot VM" to launch a simulated FlipOS environment inside this window.</p>
+                    </div>
+                    <div class="vm-window" id="vm-terminal">
+                        <p id="vm-terminal-text">&gt; system initialized.<br>&gt; awaiting command...</p>
+                        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                            <input id="vm-command-input" type="text" placeholder="Enter VM command (help, status, ping)" style="flex:1; min-width:180px; padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.08); color: inherit; outline:none;">
+                            <button class="vm-action-btn" onclick="sendVmCommand()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="games-app" class="window" style="left: 50px; top: 250px;">
         <div class="window-header">
             <span><i class="fas fa-gamepad"></i> Flip_Games</span>
@@ -691,7 +868,15 @@ console.log(fetchTreats());
         </div>
         <div class="window-content">
             <div class="game-area">
-                <iframe src="mobile game.html" frameborder="0" height="400" width="600" ></iframe>
+                <p>Tap a game to launch</p>
+                <div class="game-controls">
+                    <button onclick="launchGame('snake')">Snake</button>
+                    <button onclick="launchGame('pong')">Pong</button>
+                    <button onclick="launchGame('maze')">Maze</button>
+                </div>
+                <div id="game-preview" class="game-preview">
+                    <span>Game preview will appear here</span>
+                </div>
             </div>
         </div>
     </div>
@@ -725,6 +910,12 @@ console.log(fetchTreats());
                     <label for="wallpaper-upload">Загрузить обои:</label>
                     <input type="file" id="wallpaper-upload" accept="image/*" onchange="uploadWallpaper(event)">
                 </div>
+            </div>
+            <div class="about-card">
+                <h4>About FlipOS</h4>
+                <p>FlipOS 27.0 Developer Beta is a next-generation desktop simulation built for playful experimentation, creative app discovery, and modern liquid glass cosmetics.</p>
+                <p>This beta release includes new blurred glass panels, richer app interfaces, and advanced styling for a developer-themed OS experience.</p>
+                <div class="about-version">Version: FlipOS 27.0 Developer Beta</div>
             </div>
         </div>
     </div>
@@ -777,6 +968,24 @@ console.log(fetchTreats());
             <button style="margin-top:15px; background: var(--accent); border:none; padding:10px; color:white; border-radius:5px; cursor:pointer;">Просмотреть магазин</button>
         </div>
     </div>
+    <div id="chat-app" class="window" style="left: 300px; top: 180px; width: 820px; height: 540px;">
+        <div class="window-header">
+            <span><i class="fas fa-comments"></i> Flip_Chat</span>
+            <div class="window-header-buttons">
+                <span class="window-header-button minimize-btn" onclick="minimizeApp('chat-app')">_</span>
+                <span class="window-header-button maximize-btn" onclick="maximizeApp('chat-app')">□</span>
+                <span class="window-header-button close-btn" onclick="closeApp('chat-app')">✖</span>
+            </div>
+        </div>
+        <div class="window-content">
+            <div style="display:flex; flex-direction:column; gap:16px; height:100%;">
+                <div style="padding:12px 14px; border-radius:20px; background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); color:rgba(255,255,255,0.9);">
+                    <strong>Flip Chat connected.</strong> Use this window to open the built-in Flip Chat experience and chat with people in the ecosystem.
+                </div>
+                <iframe src="chat.html" class="browser-iframe" style="height: calc(100% - 88px);"></iframe>
+            </div>
+        </div>
+    </div>
     <div id="paws-app" class="window" style="left: 400px; top: 240px;">
         <div class="window-header">
             <span><i class="fas fa-paw"></i> Flip_Paws</span>
@@ -799,7 +1008,7 @@ console.log(fetchTreats());
     </div>
     <div id="taskbar">
         <div id="start-button" style="background: #00000000;"onclick="toggleStartMenu()">
-            <img src="bedniy.png" alt="Start">
+            <img src="img/logo.png" alt="Start">
         </div>
         <div id="running-apps"></div>
     </div>
@@ -810,6 +1019,8 @@ console.log(fetchTreats());
             <div class="menu-item" onclick="openApp('gallery-app')"><i class="fas fa-image"></i> Галерея</div>
             <div class="menu-item" onclick="openApp('browser-app')"><i class="fas fa-globe"></i> Flip_Browser</div>
             <div class="menu-item" onclick="openApp('games-app')"><i class="fas fa-gamepad"></i> Flip_Games</div>
+            <div class="menu-item" onclick="openApp('chat-app')"><i class="fas fa-comments"></i> Flip_Chat</div>
+            <div class="menu-item" onclick="openApp('vm-app')"><i class="fas fa-desktop"></i> Flip_VM</div>
             <div class="menu-item" onclick="openApp('settings-app')"><i class="fas fa-cog"></i> Настройки</div>
             <div class="menu-item" onclick="openApp('store-app')"><i class="fas fa-shopping-basket"></i> Flip_Store</div>
             <div class="menu-item" onclick="openApp('mail-app')"><i class="fas fa-envelope"></i> Flip_Mail</div>
@@ -1010,6 +1221,8 @@ console.log(fetchTreats());
                     else if (win.id === 'gallery-app') iconClass = 'fas fa-image';
                     else if (win.id === 'browser-app') iconClass = 'fas fa-globe';
                     else if (win.id === 'games-app') iconClass = 'fas fa-gamepad';
+                    else if (win.id === 'chat-app') iconClass = 'fas fa-comments';
+                    else if (win.id === 'vm-app') iconClass = 'fas fa-desktop';
                     else if (win.id === 'settings-app') iconClass = 'fas fa-cog';
                     else if (win.id === 'mail-app') iconClass = 'fas fa-envelope';
 
@@ -1080,6 +1293,68 @@ function loadMusic() {
         audio.src = url;
         audio.play();
     }
+}
+
+let vmBooted = false;
+
+function toggleVmBoot(button) {
+    const statusBox = document.getElementById('vm-boot-status');
+    const terminalText = document.getElementById('vm-terminal-text');
+    if (!vmBooted) {
+        vmBooted = true;
+        statusBox.innerHTML = '<p>Booting Virtual FlipOS...<br>Loading glass panels, widgets and system shell...</p>';
+        terminalText.innerHTML = '&gt; boot sequence started...<br>&gt; loading FlipOS 27.0 kernel...<br>&gt; initializing interface...<br>&gt; virtual machine online.<br>&gt; type "help" for commands.';
+        button.textContent = 'Shutdown VM';
+    } else {
+        vmBooted = false;
+        statusBox.innerHTML = '<p>Virtual machine is ready. Click "Boot VM" to launch a simulated FlipOS environment inside this window.</p>';
+        terminalText.innerHTML = '&gt; system initialized.<br>&gt; awaiting command...';
+        button.textContent = 'Boot VM';
+    }
+}
+
+function sendVmCommand() {
+    const input = document.getElementById('vm-command-input');
+    const terminalText = document.getElementById('vm-terminal-text');
+    const command = input.value.trim().toLowerCase();
+    if (!vmBooted) {
+        alert('Boot the VM first before sending commands.');
+        return;
+    }
+    if (!command) return;
+
+    let response = '';
+    switch (command) {
+        case 'help':
+            response = '&gt; available commands: help, status, ping, reboot';
+            break;
+        case 'status':
+            response = '&gt; FlipOS VM Status: glass mode active, all systems nominal.';
+            break;
+        case 'ping':
+            response = '&gt; pong! virtual network running smoothly.';
+            break;
+        case 'reboot':
+            response = '&gt; rebooting...';
+            vmBooted = false;
+            document.querySelector('#vm-app .vm-shell-header .vm-action-btn').textContent = 'Boot VM';
+            document.getElementById('vm-boot-status').innerHTML = '<p>Virtual machine is ready. Click "Boot VM" to launch a simulated FlipOS environment inside this window.</p>';
+            break;
+        default:
+            response = '&gt; command not recognized. Type "help" for available commands.';
+    }
+
+    terminalText.innerHTML += '<br>&gt; ' + command + '<br>' + response;
+    input.value = '';
+    input.focus();
+}
+
+function launchGame(gameId) {
+    const preview = document.getElementById('game-preview');
+    if (!preview) return;
+
+    preview.innerHTML = `<iframe src="mobile game.html" frameborder="0" width="100%" height="100%" allowfullscreen style="border:none;"></iframe>`;
+    preview.style.minHeight = '360px';
 }
 
 </script>
